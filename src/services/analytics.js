@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 // Retrieve or generate a persistent unique visitor ID
 export const getVisitorId = () => {

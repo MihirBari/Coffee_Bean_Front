@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_BASE as ROOT_API } from '../config/api';
 
-const API_BASE = 'http://localhost:5000/api/marketplace';
+const API_BASE = `${ROOT_API}/marketplace`;
 
 const getAuthConfig = (getState) => {
   const token = getState().auth.token;

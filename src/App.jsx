@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from './store/productsSlice';
@@ -14,7 +14,6 @@ import CartDrawer from './components/CartDrawer';
 import WishlistDrawer from './components/WishlistDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import AuthModal from './components/AuthModal';
-import AdminDashboard from './components/AdminDashboard';
 import MascotWidget from './components/MascotWidget';
 import ReturnPolicyModal from './components/ReturnPolicyModal';
 import CustomerOrdersModal from './components/CustomerOrdersModal';
@@ -22,6 +21,8 @@ import InvoiceModal from './components/InvoiceModal';
 import { openCheckout, closeCheckout } from './store/cartSlice';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
+
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 export default function App() {
   const dispatch = useDispatch();
@@ -96,7 +97,19 @@ export default function App() {
           <Route path="/story" element={<Navigate to="/" replace />} />
           <Route path="/shop" element={<ShopCatalog onNavigate={handleNavigate} />} />
           <Route path="/store" element={<Navigate to="/shop" replace />} />
-          <Route path="/admin" element={<AdminDashboard onNavigate={handleNavigate} />} />
+          <Route 
+            path="/admin" 
+            element={
+              <Suspense fallback={
+                <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#D4A373]">
+                  <div className="w-8 h-8 border-2 border-[#D4A373] border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-xs uppercase tracking-widest text-[#D4A373]/80 font-mono">Loading Operations Console...</p>
+                </div>
+              }>
+                <AdminDashboard onNavigate={handleNavigate} />
+              </Suspense>
+            } 
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

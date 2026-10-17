@@ -5,6 +5,7 @@ import { clearCart } from '../store/cartSlice';
 import { openReturnPolicyModal } from '../store/settingsSlice';
 import { fetchAddresses, addAddress, fetchWallet, toggleBeanCoinsDiscount } from '../store/marketplaceSlice';
 import axios from 'axios';
+import { API_BASE } from '../config/api';
 import { sendVerificationOtp, verifyEmailOtp, resetVerification, setVerificationProof } from '../store/authSlice';
 import { trackPageView } from '../services/analytics';
 import { 
@@ -377,7 +378,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
       }
       try {
         setServerCheckLoading(true);
-        const res = await axios.get(`http://localhost:5000/api/auth/check-verification?email=${encodeURIComponent(email)}`);
+        const res = await axios.get(`${API_BASE}/auth/check-verification?email=${encodeURIComponent(email)}`);
         if (!isCancelled) {
           if (res.data?.is_verified) {
             setServerVerified(true);
@@ -449,7 +450,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
   const handleEmailBlur = async () => {
     if (!currentEmail || !currentEmail.includes('@') || isCustomerEmailVerified) return;
     try {
-      const res = await axios.get(`http://localhost:5000/api/auth/check-verification?email=${encodeURIComponent(currentEmail)}`);
+      const res = await axios.get(`${API_BASE}/auth/check-verification?email=${encodeURIComponent(currentEmail)}`);
       if (res.data?.is_verified) {
         setServerVerified(true);
         const known = getKnownVerifiedEmails();

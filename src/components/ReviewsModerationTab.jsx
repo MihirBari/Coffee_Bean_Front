@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { API_BASE } from '../config/api';
 import {
   MessageSquare,
   Star,
@@ -28,7 +29,7 @@ export default function ReviewsModerationTab({ onShowNotice }) {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/api/reviews/all', {
+      const res = await axios.get(`${API_BASE}/reviews/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -56,7 +57,7 @@ export default function ReviewsModerationTab({ onShowNotice }) {
 
     try {
       setDeletingId(review.id);
-      const res = await axios.delete(`http://localhost:5000/api/reviews/${review.id}`, {
+      const res = await axios.delete(`${API_BASE}/reviews/${review.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

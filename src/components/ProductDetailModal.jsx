@@ -6,6 +6,7 @@ import { openReturnPolicyModal } from '../store/settingsSlice';
 import { trackPageView, trackProductEvent } from '../services/analytics';
 import BrandLogo from './BrandLogo';
 import axios from 'axios';
+import { API_BASE } from '../config/api';
 import { 
   X, 
   ShoppingBag, 
@@ -113,7 +114,7 @@ export default function ProductDetailModal() {
       trackProductEvent(product.id, 'view');
 
       // Fetch reviews from backend
-      axios.get(`http://localhost:5000/api/reviews/product/${product.id}`)
+      axios.get(`${API_BASE}/reviews/product/${product.id}`)
         .then((res) => {
           if (res.data.success) {
             setReviewsData({
@@ -129,7 +130,7 @@ export default function ProductDetailModal() {
         });
 
       // Fetch Community Q&A from backend
-      axios.get(`http://localhost:5000/api/marketplace/questions/${product.id}`)
+      axios.get(`${API_BASE}/marketplace/questions/${product.id}`)
         .then((res) => {
           if (res.data.success) {
             setQuestions(res.data.data || []);
@@ -274,7 +275,7 @@ export default function ProductDetailModal() {
     if (!questionText.trim()) return;
     setQuestionSubmitting(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/marketplace/questions', {
+      const res = await axios.post(`${API_BASE}/marketplace/questions`, {
         product_id: product.id,
         question: questionText,
         asker_name: askerName || 'Curious Patron'
@@ -283,7 +284,7 @@ export default function ProductDetailModal() {
         setQuestionSuccessMsg('Question posted! Our roastmasters will answer shortly.');
         setQuestionText('');
         setIsAskingQuestion(false);
-        const qRes = await axios.get(`http://localhost:5000/api/marketplace/questions/${product.id}`);
+        const qRes = await axios.get(`${API_BASE}/marketplace/questions/${product.id}`);
         if (qRes.data.success) {
           setQuestions(qRes.data.data || []);
         }
@@ -306,7 +307,7 @@ export default function ProductDetailModal() {
     setReviewSubmitting(true);
     try {
       const res = await axios.post(
-        'http://localhost:5000/api/reviews',
+        `${API_BASE}/reviews`,
         {
           product_id: product.id,
           reviewer_name: newReviewForm.reviewer_name,
@@ -326,7 +327,7 @@ export default function ProductDetailModal() {
         setIsWritingReview(false);
         setNewReviewForm({ rating: 5, title: '', comment: '', reviewer_name: user?.name || '' });
         // Refresh reviews
-        const refreshRes = await axios.get(`http://localhost:5000/api/reviews/product/${product.id}`);
+        const refreshRes = await axios.get(`${API_BASE}/reviews/product/${product.id}`);
         if (refreshRes.data.success) {
           setReviewsData({
             average_rating: refreshRes.data.average_rating,
@@ -367,7 +368,7 @@ export default function ProductDetailModal() {
     setEditSubmitting(true);
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/reviews/${reviewId}`,
+        `${API_BASE}/reviews/${reviewId}`,
         {
           rating: editingReviewForm.rating,
           title: editingReviewForm.title,
@@ -384,7 +385,7 @@ export default function ProductDetailModal() {
         setReviewSuccessMsg('Review updated successfully!');
         setEditingReviewId(null);
         // Refresh reviews
-        const refreshRes = await axios.get(`http://localhost:5000/api/reviews/product/${product.id}`);
+        const refreshRes = await axios.get(`${API_BASE}/reviews/product/${product.id}`);
         if (refreshRes.data.success) {
           setReviewsData({
             average_rating: refreshRes.data.average_rating,
@@ -409,7 +410,7 @@ export default function ProductDetailModal() {
     setDeleteSubmittingId(reviewId);
     try {
       const res = await axios.delete(
-        `http://localhost:5000/api/reviews/${reviewId}`,
+        `${API_BASE}/reviews/${reviewId}`,
         {
           headers: {
             Authorization: token ? `Bearer ${token}` : ''
@@ -423,7 +424,7 @@ export default function ProductDetailModal() {
           setEditingReviewId(null);
         }
         // Refresh reviews
-        const refreshRes = await axios.get(`http://localhost:5000/api/reviews/product/${product.id}`);
+        const refreshRes = await axios.get(`${API_BASE}/reviews/product/${product.id}`);
         if (refreshRes.data.success) {
           setReviewsData({
             average_rating: refreshRes.data.average_rating,

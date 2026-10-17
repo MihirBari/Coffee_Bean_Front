@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchCRMCustomers } from '../store/marketplaceSlice';
 import axios from 'axios';
+import { API_BASE } from '../config/api';
 import {
   Users,
   Award,
@@ -42,12 +43,12 @@ export default function CustomerCRMTab() {
   const handleExport = async (type) => {
     const isOrders = type === 'orders';
     const setDownloading = isOrders ? setDownloadingOrders : setDownloadingInventory;
-    const endpoint = isOrders ? '/api/marketplace/export-orders' : '/api/marketplace/export-inventory';
+    const endpoint = isOrders ? `${API_BASE}/marketplace/export-orders` : `${API_BASE}/marketplace/export-inventory`;
     const defaultFilename = isOrders ? 'orders_export.csv' : 'inventory_export.csv';
 
     try {
       setDownloading(true);
-      const res = await axios.get(`http://localhost:5000${endpoint}`, {
+      const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });
@@ -83,7 +84,7 @@ export default function CustomerCRMTab() {
   const handleToggleVerification = async (customerId, isVerified) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/marketplace/crm-customers/${customerId}/verify`,
+        `${API_BASE}/marketplace/crm-customers/${customerId}/verify`,
         { is_verified: isVerified },
         { headers: { Authorization: `Bearer ${token}` } }
       );
