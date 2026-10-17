@@ -7,7 +7,7 @@ import {
   registerCustomer 
 } from '../store/authSlice';
 import { addToCart } from '../store/cartSlice';
-import { toggleWishlist } from '../store/authSlice';
+import { toggleWishlist } from '../store/authSlice'; 
 import BrandLogo from './BrandLogo';
 import { X, Lock, User, Mail, ShieldAlert, ArrowRight, CheckCircle2 } from 'lucide-react';
 
