@@ -53,7 +53,7 @@ export default function PromotionsTab({ onShowNotice }) {
   const [dealForm, setDealForm] = useState({
     title: '⚡ Roastery Lightning Deals',
     badge_text: 'Deal of the Day',
-    description: 'Fresh roasted small-batch tins at roaster-direct pricing. Free delivery on > 2 items!',
+    description: 'Fresh roasted small-batch tins at roaster-direct pricing. Free delivery on more than 2 items!',
     coupon_code: 'FLASH20',
     discount_percent: 20,
     duration_hours: 4,
@@ -552,7 +552,7 @@ export default function PromotionsTab({ onShowNotice }) {
                       </span>
                     </div>
                     <p className="text-xs text-[#F5EFC6]/85 font-body mt-0.5">
-                      {dealForm.description || 'Fresh roasted small-batch tins at roaster-direct pricing. Free delivery on > 2 items!'}
+                      {dealForm.description || 'Fresh roasted small-batch tins at roaster-direct pricing. Free delivery on more than 2 items!'}
                     </p>
                     {dealForm.coupon_code && (
                       <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#18100E] border border-amber-400/50 text-amber-300 text-[11px] font-headline font-bold">
@@ -645,7 +645,7 @@ export default function PromotionsTab({ onShowNotice }) {
                   value={dealForm.description}
                   onChange={(e) => setDealForm({ ...dealForm, description: e.target.value })}
                   rows={2}
-                  placeholder="Fresh roasted small-batch tins at roaster-direct pricing. Free delivery on > 2 items!"
+                  placeholder="Fresh roasted small-batch tins at roaster-direct pricing. Free delivery on more than 2 items!"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#18100E] border border-[#4A2E27] focus:border-amber-400 text-[#F5EFC6] text-xs font-body resize-none"
                   required
                 />

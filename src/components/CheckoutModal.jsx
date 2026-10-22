@@ -155,15 +155,14 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
 
   // Automatic Address Saver into customer address book columns
   const triggerAutoSaveAddress = (parts, name, phone, immediate = false) => {
-    const cleanPin = (parts?.pincode || '').replace(/\D/g, '').trim();
-    if (cleanPin.length !== 6) return;
-    if (!parts?.street_locality || parts.street_locality.trim().length < 3) return;
+    const cleanPin = (parts?.pincode || (formData?.shipping_address?.match(/\b([1-9][0-9]{5})\b/) || [])[1] || '').replace(/\D/g, '').trim();
     const resolvedCity = (parts?.city || '').trim() || 'Bengaluru';
     const resolvedState = parts?.state || 'Karnataka';
 
-    const main = [parts.house_flat, parts.street_locality, resolvedCity, resolvedState].filter(Boolean).join(', ');
-    const fullStr = main ? `${main} - ${cleanPin}` : '';
-    if (!fullStr || fullStr === lastSavedAddressRef.current) return;
+    const main = [parts?.house_flat, parts?.street_locality, resolvedCity, resolvedState].filter(Boolean).join(', ');
+    const fullStr = (main ? (cleanPin ? `${main} - ${cleanPin}` : main) : formData?.shipping_address || '').trim();
+    if (!fullStr || fullStr.length < 5) return;
+    if (fullStr === lastSavedAddressRef.current && !immediate) return;
 
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -175,14 +174,16 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
 
       const recipientName = (name || formData?.customer_name || user?.name || 'Customer').trim();
       const contactPhone = (phone || formData?.customer_phone || user?.phone || '').trim();
+      const contactEmail = (formData?.customer_email || user?.email || '').trim().toLowerCase();
 
       const addrPayload = {
         label: 'Delivery Address',
         recipient_name: recipientName,
         phone: contactPhone,
+        email: contactEmail,
         address_line: fullStr,
-        house_flat: parts.house_flat || '',
-        street_locality: parts.street_locality || '',
+        house_flat: parts?.house_flat || '',
+        street_locality: parts?.street_locality || '',
         city: resolvedCity,
         state: resolvedState,
         pincode: cleanPin,
@@ -191,7 +192,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
 
       // 1. Immediately update local addresses state & localStorage so the columns update instantly
       setLocalAddresses((prev) => {
-        const filtered = prev.filter((a) => a.address_line !== fullStr);
+        const filtered = prev.filter((a) => (a.address_line || '').toLowerCase().trim() !== fullStr.toLowerCase().trim());
         const updated = [{ id: 'local_' + Date.now(), ...addrPayload }, ...filtered];
         try {
           localStorage.setItem('coffee_bean_saved_addresses', JSON.stringify(updated));
@@ -200,13 +201,12 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
         return updated;
       });
 
-      // 2. If authenticated, persist to backend customer_addresses in MariaDB
-      if (isAuthenticated) {
-        try {
-          await dispatch(addAddress(addrPayload));
-        } catch (err) {
-          console.warn('Could not sync address to server:', err);
-        }
+      // 2. Persist to backend customer_addresses in MariaDB
+      try {
+        await dispatch(addAddress(addrPayload));
+        dispatch(fetchAddresses(contactEmail));
+      } catch (err) {
+        console.warn('Could not sync address to server:', err);
       }
 
       setAutoSaveStatus('saved');
@@ -216,7 +216,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
     if (immediate) {
       performSave();
     } else {
-      autoSaveTimerRef.current = setTimeout(performSave, 800);
+      autoSaveTimerRef.current = setTimeout(performSave, 600);
     }
   };
 
@@ -546,12 +546,16 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
       }
     }
 
+    // Immediately ensure shipping address is saved in delivery address book columns
+    triggerAutoSaveAddress(shippingParts, formData.customer_name, formData.customer_phone, true);
+
     const isSubOrder = items.some((i) => i.grindType?.toLowerCase().includes('subscrib'));
     const payload = {
       customer_name: formData.customer_name,
       customer_email: formData.customer_email,
       customer_phone: formData.customer_phone,
       shipping_address: formData.shipping_address,
+      shipping_parts: shippingParts,
       payment_method: finalPaymentDescription,
       notes: formData.notes,
       promo_code: promoCode || '',
@@ -595,6 +599,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
           setPaymentProcessing(false);
           if (placeOrder.fulfilled.match(resultAction)) {
             dispatch(clearCart());
+            dispatch(fetchAddresses(formData.customer_email || user?.email));
             if (onOrderCompleted) onOrderCompleted(resultAction.payload);
           }
         },
@@ -612,6 +617,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderCompleted }) {
     const resultAction = await dispatch(placeOrder(payload));
     if (placeOrder.fulfilled.match(resultAction)) {
       dispatch(clearCart());
+      dispatch(fetchAddresses(formData.customer_email || user?.email));
       if (onOrderCompleted) onOrderCompleted(resultAction.payload);
     }
   };

@@ -42,7 +42,7 @@ const initialState = {
     return_policy_summary: 'Hassle-free 7-day returns for damaged tins, broken seals, or defective items with 100% refund or free replacement.',
     return_policy_content: 'We craft every canister of The Bean Co. Coffee Gummies using specialty Arabica extract and plant-based pectin. If your order arrives damaged, unsealed, broken, with a missing seal, or with quality defects, you are eligible for an immediate free replacement dispatch or 100% refund within 7 calendar days of delivery.',
     roastery_helpline: '+91 98765 43210',
-    support_email: 'support@coffeebean.com'
+    support_email: 'info@thebean.company'
   },
   isReturnModalOpen: false,
   status: 'idle',

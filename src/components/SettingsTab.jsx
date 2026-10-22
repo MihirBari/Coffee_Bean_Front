@@ -32,7 +32,7 @@ export default function SettingsTab({ showNotice }) {
     return_policy_summary: 'Hassle-free 7-day returns for damaged tins, broken seals, or defective items with 100% refund or free replacement.',
     return_policy_content: 'We craft every canister of The Bean Co. Coffee Gummies using specialty Arabica extract and plant-based pectin. If your order arrives damaged, unsealed, broken, with a missing seal, or with quality defects, you are eligible for an immediate free replacement dispatch or 100% refund within 7 calendar days of delivery.',
     roastery_helpline: '+91 98765 43210',
-    support_email: 'support@coffeebean.com'
+    support_email: 'info@thebean.company'
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -49,7 +49,7 @@ export default function SettingsTab({ showNotice }) {
         return_policy_summary: settings.return_policy_summary || '',
         return_policy_content: settings.return_policy_content || '',
         roastery_helpline: settings.roastery_helpline || '+91 98765 43210',
-        support_email: settings.support_email || 'support@coffeebean.com'
+        support_email: settings.support_email || 'info@thebean.company'
       });
     }
   }, [settings]);
@@ -148,7 +148,7 @@ export default function SettingsTab({ showNotice }) {
                   Delivery Charge & Free Shipping Rules
                 </h3>
                 <span className="font-subhead text-[11px] text-[#A5BCD6]">
-                  Rule: Free for &gt; 2 products, otherwise standard fee applies (or free if order &gt;= ₹500)
+                  Rule: Free for more than {formData.free_delivery_item_threshold} products, otherwise standard fee applies (or free if order reaches ₹{formData.free_delivery_min_order})
                 </span>
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function SettingsTab({ showNotice }) {
                 />
               </div>
               <p className="text-[11px] text-[#F5EFC6]/70 leading-relaxed font-body">
-                Charged when total product quantity is 2 or less and order is under ₹{formData.free_delivery_min_order}.
+                Charged when total product quantity is {formData.free_delivery_item_threshold} or less and order is under ₹{formData.free_delivery_min_order}.
               </p>
             </div>
 
@@ -204,7 +204,7 @@ export default function SettingsTab({ showNotice }) {
             <div className="p-4 rounded-2xl bg-[#18100E] border border-[#4A2E27] space-y-2">
               <label className="font-headline font-bold text-xs uppercase tracking-wider text-[#A5BCD6] flex items-center justify-between">
                 <span>Free Item Threshold</span>
-                <span className="text-[10px] text-[#F5EFC6]/60 font-normal">&gt; Threshold</span>
+                <span className="text-[10px] text-[#F5EFC6]/60 font-normal">More than threshold</span>
               </label>
               <div className="relative">
                 <Package className="w-4 h-4 text-[#A5BCD6] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -219,7 +219,7 @@ export default function SettingsTab({ showNotice }) {
                 />
               </div>
               <p className="text-[11px] text-[#F5EFC6]/70 leading-relaxed font-body">
-                Set to <strong>{formData.free_delivery_item_threshold}</strong>: Any order with <strong>more than {formData.free_delivery_item_threshold} products</strong> (i.e. {formData.free_delivery_item_threshold + 1}+ items) gets <strong>FREE delivery</strong>!
+                Set to <strong>{formData.free_delivery_item_threshold}</strong>: Any order with <strong>more than {formData.free_delivery_item_threshold} products</strong> (i.e. {Number(formData.free_delivery_item_threshold) + 1}+ items) gets <strong>FREE delivery</strong>!
               </p>
             </div>
 
@@ -227,7 +227,7 @@ export default function SettingsTab({ showNotice }) {
             <div className="p-4 rounded-2xl bg-[#18100E] border border-[#4A2E27] space-y-2">
               <label className="font-headline font-bold text-xs uppercase tracking-wider text-[#A5BCD6] flex items-center justify-between">
                 <span>Free Min Order Value</span>
-                <span className="text-[10px] text-[#F5EFC6]/60 font-normal">&gt;= Amount</span>
+                <span className="text-[10px] text-[#F5EFC6]/60 font-normal">Min order amount</span>
               </label>
               <div className="relative">
                 <IndianRupee className="w-4 h-4 text-[#A5BCD6] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -242,7 +242,7 @@ export default function SettingsTab({ showNotice }) {
                 />
               </div>
               <p className="text-[11px] text-[#F5EFC6]/70 leading-relaxed font-body">
-                For 2 or fewer products: If cart subtotal reaches <strong>₹{formData.free_delivery_min_order}</strong>, delivery is also completely <strong>FREE</strong>.
+                For {formData.free_delivery_item_threshold} or fewer products: If cart subtotal reaches <strong>₹{formData.free_delivery_min_order}</strong>, delivery is also completely <strong>FREE</strong>.
               </p>
             </div>
 
@@ -263,13 +263,17 @@ export default function SettingsTab({ showNotice }) {
 
               <div className="p-3 rounded-xl bg-[#18100E] border border-[#4A2E27]">
                 <span className="font-bold text-[#F5EFC6] block mb-1">🛒 2 Canisters (₹598)</span>
-                <span className="text-[11px] text-[#F5EFC6]/70 block mb-1">Quantity: 2 • Over ₹{formData.free_delivery_min_order}</span>
+                <span className="text-[11px] text-[#F5EFC6]/70 block mb-1">Quantity: 2 • Order is ₹{formData.free_delivery_min_order} or more</span>
                 <span className="font-bold text-emerald-400">Delivery Fee: FREE (₹0)</span>
               </div>
 
               <div className="p-3 rounded-xl bg-[#18100E] border border-[#4A2E27]">
-                <span className="font-bold text-[#F5EFC6] block mb-1">🛒 3 Canisters (₹897)</span>
-                <span className="text-[11px] text-[#F5EFC6]/70 block mb-1">Quantity: 3 (&gt; {formData.free_delivery_item_threshold} items)</span>
+                <span className="font-bold text-[#F5EFC6] block mb-1">
+                  🛒 {Number(formData.free_delivery_item_threshold) + 1} Canisters (₹{(Number(formData.free_delivery_item_threshold) + 1) * 299})
+                </span>
+                <span className="text-[11px] text-[#F5EFC6]/70 block mb-1">
+                  Quantity: {Number(formData.free_delivery_item_threshold) + 1} (more than {formData.free_delivery_item_threshold} items)
+                </span>
                 <span className="font-bold text-emerald-400">Delivery Fee: FREE (₹0)</span>
               </div>
             </div>

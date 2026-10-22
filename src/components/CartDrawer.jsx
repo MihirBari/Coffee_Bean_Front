@@ -35,6 +35,7 @@ import {
 
 import { openAuthModal } from '../store/authSlice';
 import { openReturnPolicyModal } from '../store/settingsSlice';
+import { setSelectedProduct } from '../store/productsSlice';
 
 const INDIAN_STATES = [
   'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
@@ -359,7 +360,7 @@ export default function CartDrawer({ onProceedToCheckout }) {
                 <div className="flex items-center space-x-2 text-emerald-400 font-bold">
                   <Truck className="w-4 h-4 text-emerald-400 flex-shrink-0 animate-bounce" />
                   <span>
-                    🎉 You unlocked FREE Delivery! {totalProductCount > freeItemThreshold ? `(${totalProductCount} products in cart)` : `(Order > ₹${freeMinOrder})`}
+                    🎉 You unlocked FREE Delivery! {totalProductCount > freeItemThreshold ? `(${totalProductCount} products in cart)` : `(Order over ₹${freeMinOrder})`}
                   </span>
                 </div>
               ) : (
@@ -697,7 +698,12 @@ export default function CartDrawer({ onProceedToCheckout }) {
                   <img
                     src={item.image_url || 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=400&q=80'}
                     alt={item.name}
-                    className="w-16 h-16 rounded-xl object-cover bg-[#18100E] border border-[#4A2E27] flex-shrink-0"
+                    className="w-16 h-16 rounded-xl object-cover bg-[#18100E] border border-[#4A2E27] flex-shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
+                    onClick={() => {
+                      dispatch(setSelectedProduct(item));
+                      dispatch(toggleCart(false));
+                    }}
+                    title={`View ${item.name}`}
                     onError={(e) => {
                       e.target.src = 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=400&q=80';
                     }}
@@ -705,7 +711,16 @@ export default function CartDrawer({ onProceedToCheckout }) {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-headline font-bold text-sm text-[#F5EFC6] truncate uppercase">{item.name}</h4>
+                    <h4 
+                      onClick={() => {
+                        dispatch(setSelectedProduct(item));
+                        dispatch(toggleCart(false));
+                      }}
+                      className="font-headline font-bold text-sm text-[#F5EFC6] truncate uppercase cursor-pointer hover:text-[#D6A56E] transition-colors"
+                      title={`View ${item.name}`}
+                    >
+                      {item.name}
+                    </h4>
                     <div className="font-subhead text-[10px] text-[#A5BCD6] flex items-center space-x-1.5 mb-2">
                       <span>Pack: <strong>{item.grindType}</strong></span>
                       <span>•</span>

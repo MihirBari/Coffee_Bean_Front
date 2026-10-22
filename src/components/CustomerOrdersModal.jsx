@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   closeCustomerPortal, 
@@ -116,13 +116,47 @@ export default function CustomerOrdersModal() {
 
   const [copiedReferral, setCopiedReferral] = useState(false);
 
+  // Local saved address cache merged with server address book
+  const [localAddresses, setLocalAddresses] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('coffee_bean_saved_addresses') || '[]');
+      return Array.isArray(stored) ? stored : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (isCustomerPortalOpen) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('coffee_bean_saved_addresses') || '[]');
+        if (Array.isArray(stored)) {
+          setLocalAddresses(stored);
+        }
+      } catch (e) {}
+    }
+  }, [isCustomerPortalOpen, addresses]);
+
+  const allDisplayedAddresses = useMemo(() => {
+    const list = [...(addresses || [])];
+    const seen = new Set(list.map((a) => (a.address_line || '').toLowerCase().trim()));
+    localAddresses.forEach((localAddr) => {
+      const line = (localAddr.address_line || '').toLowerCase().trim();
+      if (line && !seen.has(line)) {
+        seen.add(line);
+        list.push(localAddr);
+      }
+    });
+    return list;
+  }, [addresses, localAddresses]);
+
   useEffect(() => {
     if (isCustomerPortalOpen && isAuthenticated) {
       if (portalTab === 'wallet') {
         dispatch(setPortalTab('orders'));
       }
       dispatch(fetchMyOrders());
-      dispatch(fetchAddresses());
+      dispatch(fetchAddresses(user?.email));
       if (user?.email) {
         dispatch(checkEmailVerification(user.email));
       }
@@ -310,10 +344,26 @@ export default function CustomerOrdersModal() {
       addressForm.state
     ].filter(Boolean).join(', ');
 
-    await dispatch(addAddress({
+    const newAddrObj = {
       ...addressForm,
-      address_line: finalAddressLine
-    }));
+      address_line: finalAddressLine,
+      email: user?.email || ''
+    };
+
+    // Save to local addresses list immediately
+    setLocalAddresses((prev) => {
+      const filtered = prev.filter((a) => (a.address_line || '').toLowerCase().trim() !== finalAddressLine.toLowerCase().trim());
+      const updated = [{ id: 'local_' + Date.now(), ...newAddrObj }, ...filtered];
+      try {
+        localStorage.setItem('coffee_bean_saved_addresses', JSON.stringify(updated));
+        localStorage.setItem('coffee_bean_active_address', JSON.stringify(newAddrObj));
+      } catch (err) {}
+      return updated;
+    });
+
+    await dispatch(addAddress(newAddrObj));
+    dispatch(fetchAddresses(user?.email));
+
     setIsAddingAddress(false);
     setAddressForm({
       label: 'Home',
@@ -328,6 +378,19 @@ export default function CustomerOrdersModal() {
     });
     setLocationNotice('');
     setLocationError('');
+  };
+
+  const handleDeleteAddress = async (addr) => {
+    if (addr.id && !String(addr.id).startsWith('local_')) {
+      await dispatch(deleteAddress(addr.id));
+    }
+    setLocalAddresses((prev) => {
+      const updated = prev.filter((a) => a.id !== addr.id && (a.address_line || '').toLowerCase().trim() !== (addr.address_line || '').toLowerCase().trim());
+      try {
+        localStorage.setItem('coffee_bean_saved_addresses', JSON.stringify(updated));
+      } catch (err) {}
+      return updated;
+    });
   };
 
   const handleCopyReferral = () => {
@@ -493,7 +556,7 @@ export default function CustomerOrdersModal() {
               }`}
             >
               <MapPin className="w-4 h-4 text-[#A5BCD6]" />
-              <span>Address Book ({addresses.length})</span>
+              <span>Address Book ({allDisplayedAddresses.length})</span>
             </button>
 
             {/* Bean Coins tab button (temporarily commented out)
@@ -773,7 +836,7 @@ export default function CustomerOrdersModal() {
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#4A2E27]">
                 <h4 className="font-headline font-bold text-sm text-[#F5EFC6] uppercase tracking-wider">
-                  Saved Delivery Addresses ({addresses.length})
+                  Saved Delivery Addresses ({allDisplayedAddresses.length})
                 </h4>
                 <button
                   onClick={() => setIsAddingAddress(!isAddingAddress)}
@@ -1005,37 +1068,45 @@ export default function CustomerOrdersModal() {
 
               {/* Addresses List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {addresses.map((addr) => {
-                  const fullAddressString = addr.house_flat
-                    ? `${addr.house_flat}, ${addr.street_locality || addr.address_line}${addr.city ? `, ${addr.city}` : ''}${addr.state ? `, ${addr.state}` : ''}`
-                    : addr.address_line;
+                {allDisplayedAddresses.length === 0 ? (
+                  <div className="col-span-full py-10 px-4 text-center rounded-2xl bg-[#18100E] border border-dashed border-[#4A2E27]">
+                    <MapPin className="w-8 h-8 text-[#A5BCD6]/40 mx-auto mb-2" />
+                    <p className="font-headline font-bold text-sm text-[#F5EFC6] uppercase">No Saved Delivery Addresses Yet</p>
+                    <p className="font-body text-xs text-[#A5BCD6] mt-1">When you enter an address at checkout or place an order, it will automatically save here in your delivery address book.</p>
+                  </div>
+                ) : (
+                  allDisplayedAddresses.map((addr) => {
+                    const fullAddressString = addr.house_flat
+                      ? `${addr.house_flat}, ${addr.street_locality || addr.address_line}${addr.city ? `, ${addr.city}` : ''}${addr.state ? `, ${addr.state}` : ''}`
+                      : addr.address_line;
 
-                  return (
-                    <div key={addr.id} className="p-4 rounded-2xl bg-[#18100E] border border-[#4A2E27] space-y-2 relative">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-lg bg-[#4D0E12] text-[#F5EFC6] text-[10px] font-bold uppercase tracking-wider border border-[#F5EFC6]/20">
-                          {addr.label}
-                        </span>
-                        {addr.is_default ? (
-                          <span className="text-[10px] font-bold text-emerald-400">Default Address ✓</span>
-                        ) : null}
+                    return (
+                      <div key={addr.id} className="p-4 rounded-2xl bg-[#18100E] border border-[#4A2E27] space-y-2 relative">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded-lg bg-[#4D0E12] text-[#F5EFC6] text-[10px] font-bold uppercase tracking-wider border border-[#F5EFC6]/20">
+                            {addr.label || 'Delivery Address'}
+                          </span>
+                          {addr.is_default ? (
+                            <span className="text-[10px] font-bold text-emerald-400">Default Address ✓</span>
+                          ) : null}
+                        </div>
+                        <p className="font-bold text-sm text-[#F5EFC6]">{addr.recipient_name || 'Customer'}</p>
+                        <p className="text-xs text-[#F5EFC6]/80 leading-relaxed font-body">
+                          {fullAddressString} {addr.pincode ? `- ${addr.pincode}` : ''}
+                        </p>
+                        {addr.phone && <p className="text-[11px] text-[#A5BCD6]">Phone: {addr.phone}</p>}
+
+                        <button
+                          onClick={() => handleDeleteAddress(addr)}
+                          className="text-xs text-red-400 hover:text-red-300 pt-2 flex items-center space-x-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
                       </div>
-                      <p className="font-bold text-sm text-[#F5EFC6]">{addr.recipient_name}</p>
-                      <p className="text-xs text-[#F5EFC6]/80 leading-relaxed font-body">
-                        {fullAddressString} - {addr.pincode}
-                      </p>
-                      <p className="text-[11px] text-[#A5BCD6]">Phone: {addr.phone}</p>
-
-                      <button
-                        onClick={() => dispatch(deleteAddress(addr.id))}
-                        className="text-xs text-red-400 hover:text-red-300 pt-2 flex items-center space-x-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Remove</span>
-                      </button>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           )}

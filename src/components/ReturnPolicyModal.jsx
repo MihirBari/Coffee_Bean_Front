@@ -22,8 +22,9 @@ export default function ReturnPolicyModal() {
   if (!isReturnModalOpen) return null;
 
   const returnDays = settings?.return_window_days || 7;
+  const freeThreshold = Number(settings?.free_delivery_item_threshold ?? 2);
   const returnTitle = settings?.return_policy_title || `${returnDays}-Day Roastery Freshness & Replacement Guarantee`;
-  const supportEmail = settings?.support_email || 'support@coffeebean.com';
+  const supportEmail = settings?.support_email || 'info@thebean.company';
   const helpline = settings?.roastery_helpline || '+91 98765 43210';
 
   return (
@@ -161,7 +162,7 @@ export default function ReturnPolicyModal() {
               🚚 Domestic India Delivery Guarantee (India Shipping Only 🇮🇳)
             </span>
             <p className="text-[#A5BCD6] text-[11px]">
-              We ship exclusively within India across all 28 states and 8 union territories (International shipping unavailable). Orders with more than 2 products enjoy <strong>FREE Express Delivery</strong>. For orders with 2 or fewer products, standard delivery charge is ₹{settings?.delivery_charge || 55} (or FREE for orders over ₹{settings?.free_delivery_min_order || 500}).
+              We ship exclusively within India across all 28 states and 8 union territories (International shipping unavailable). Orders with more than {freeThreshold} products enjoy <strong>FREE Express Delivery</strong>. For orders with {freeThreshold} or fewer products, standard delivery charge is ₹{settings?.delivery_charge || 55} (or FREE for orders over ₹{settings?.free_delivery_min_order || 500}).
             </p>
           </div>
         </div>

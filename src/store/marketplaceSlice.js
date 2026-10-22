@@ -87,9 +87,13 @@ export const updateOrderFulfillment = createAsyncThunk(
 
 export const fetchAddresses = createAsyncThunk(
   'marketplace/fetchAddresses',
-  async (_, { getState, rejectWithValue }) => {
+  async (emailParam, { getState, rejectWithValue }) => {
     try {
-      const res = await axios.get(`${API_BASE}/addresses`, getAuthConfig(getState));
+      const email = emailParam || getState().auth.user?.email || '';
+      const res = await axios.get(`${API_BASE}/addresses`, {
+        ...getAuthConfig(getState),
+        params: email ? { email } : {}
+      });
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch addresses');
@@ -101,7 +105,9 @@ export const addAddress = createAsyncThunk(
   'marketplace/addAddress',
   async (addressData, { getState, rejectWithValue }) => {
     try {
-      const res = await axios.post(`${API_BASE}/addresses`, addressData, getAuthConfig(getState));
+      const email = addressData.email || getState().auth.user?.email || '';
+      const payload = { ...addressData, email };
+      const res = await axios.post(`${API_BASE}/addresses`, payload, getAuthConfig(getState));
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to save address');

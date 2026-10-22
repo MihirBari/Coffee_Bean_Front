@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { openReturnPolicyModal } from '../store/settingsSlice';
 import BrandLogo from './BrandLogo';
 import BeanoMascot from './BeanoMascot';
@@ -20,6 +20,9 @@ import {
 export default function Footer({ setCurrentView }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { settings } = useSelector((state) => state.settings);
+  const freeThreshold = Number(settings?.free_delivery_item_threshold ?? 2);
+  const returnDays = settings?.return_window_days || 7;
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -139,8 +142,8 @@ export default function Footer({ setCurrentView }) {
             <div className="space-y-1.5 pt-1 text-[#C7BCB3]">
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-[#D6A56E]" />
-                <a href="mailto:hello@thebeanco.in" className="hover:text-[#F6F2E8] transition-colors">
-                  hello@thebeanco.in
+                <a href={`mailto:${settings?.support_email || 'info@thebean.company'}`} className="hover:text-[#F6F2E8] transition-colors">
+                  {settings?.support_email || 'info@thebean.company'}
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -225,14 +228,14 @@ export default function Footer({ setCurrentView }) {
                   className="hover:text-emerald-400 transition-colors text-left flex items-center gap-1 text-emerald-400"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span>7-Day Return Policy</span>
+                  <span>{returnDays}-Day Return Policy</span>
                 </button>
               </li>
               <li>
                 <span className="block text-[#A89B93]/70">🇮🇳 Domestic India Shipping Only</span>
               </li>
               <li>
-                <span className="block text-[#A89B93]/70">Free Shipping on &gt; 2 Canisters</span>
+                <span className="block text-[#A89B93]/70">Free Shipping on more than {freeThreshold} Canisters</span>
               </li>
               <li className="pt-2 border-t border-white/[0.06]">
                 <button 

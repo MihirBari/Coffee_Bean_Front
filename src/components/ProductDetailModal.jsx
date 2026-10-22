@@ -519,7 +519,7 @@ export default function ProductDetailModal() {
                 </div>
                 <div>
                   <span className="font-bold text-[#F5EFC6] block leading-tight">FREE Delivery</span>
-                  <span className="text-[10px] text-[#A5BCD6]">On &gt; 2 items (or &gt; ₹{freeMinOrder})</span>
+                  <span className="text-[10px] text-[#A5BCD6]">On more than {freeThreshold} items (or orders over ₹{freeMinOrder})</span>
                 </div>
               </div>
 
@@ -609,7 +609,7 @@ export default function ProductDetailModal() {
                     </span>
                   </div>
                   <span className="text-[10px] text-emerald-400 font-semibold">
-                    Delivery ₹{deliveryCharge} (FREE on &gt; 2 items)
+                    Delivery ₹{deliveryCharge} (FREE on more than {freeThreshold} items)
                   </span>
                 </div>
 
@@ -812,7 +812,7 @@ export default function ProductDetailModal() {
               <div className="mt-2.5 font-subhead text-[10px] text-[#F5EFC6]/60 flex items-center justify-between">
                 <span>
                   {quantity > freeThreshold ? (
-                    <strong className="text-emerald-400">✨ Eligible for FREE Delivery (Selected &gt; {freeThreshold} items)</strong>
+                    <strong className="text-emerald-400">✨ Eligible for FREE Delivery (Selected more than {freeThreshold} items)</strong>
                   ) : (
                     <span>Add {freeThreshold - quantity + 1} more for FREE delivery</span>
                   )}

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleWishlistDrawer, toggleWishlist } from '../store/authSlice';
 import { addToCart } from '../store/cartSlice';
+import { setSelectedProduct } from '../store/productsSlice';
 import { trackPageView } from '../services/analytics';
 import BeanoMascot from './BeanoMascot';
 import { X, Heart, ShoppingBag, Trash2 } from 'lucide-react';
@@ -74,13 +75,27 @@ export default function WishlistDrawer() {
                   <img
                     src={item.image_url || '/assets/brand/packaging-canisters.jpg'}
                     alt={item.name}
-                    className="w-16 h-16 rounded-xl object-cover bg-[#18100E] border border-[#4A2E27] flex-shrink-0"
+                    className="w-16 h-16 rounded-xl object-cover bg-[#18100E] border border-[#4A2E27] flex-shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
+                    onClick={() => {
+                      dispatch(setSelectedProduct(item));
+                      dispatch(toggleWishlistDrawer(false));
+                    }}
+                    title={`View ${item.name}`}
                     onError={(e) => {
                       e.target.src = '/assets/brand/packaging-canisters.jpg';
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-headline font-bold text-xs text-[#F5EFC6] truncate uppercase">{item.name}</h4>
+                    <h4 
+                      onClick={() => {
+                        dispatch(setSelectedProduct(item));
+                        dispatch(toggleWishlistDrawer(false));
+                      }}
+                      className="font-headline font-bold text-xs text-[#F5EFC6] truncate uppercase cursor-pointer hover:text-[#D6A56E] transition-colors"
+                      title={`View ${item.name}`}
+                    >
+                      {item.name}
+                    </h4>
                     <span className="font-subhead text-[11px] text-[#A5BCD6] block mb-2">₹{parseFloat(item.price).toFixed(2)}</span>
                     <button
                       onClick={() => handleMoveToCart(item)}

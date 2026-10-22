@@ -32,6 +32,9 @@ export default function ShopCatalog({ onNavigate }) {
   const { settings } = useSelector((state) => state.settings);
   const { lightningDeal } = useSelector((state) => state.promotions);
 
+  const freeThreshold = Number(settings?.free_delivery_item_threshold ?? 2);
+  const returnDays = settings?.return_window_days || 7;
+
   const [selectedPacks, setSelectedPacks] = useState({});
   const [addedItemNotice, setAddedItemNotice] = useState(null);
   const [copiedDealCoupon, setCopiedDealCoupon] = useState(false);
@@ -339,18 +342,30 @@ export default function ShopCatalog({ onNavigate }) {
                 className="group bg-[#1E1513] border border-white/[0.08] hover:border-[#D6A56E]/40 rounded-3xl overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:-translate-y-1"
               >
                 {/* Canister Image & Wishlist Button */}
-                <div className="relative aspect-[4/3] bg-[#140E0C] overflow-hidden">
+                <div 
+                  onClick={() => dispatch(setSelectedProduct(product))}
+                  className="relative aspect-[4/3] bg-[#140E0C] overflow-hidden cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      dispatch(setSelectedProduct(product));
+                    }
+                  }}
+                  aria-label={`View details for ${product.name}`}
+                >
                   <img
                     src={product.image_url || '/assets/brand/packaging-canisters.jpg'}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out cursor-pointer"
                     onError={(e) => {
                       e.target.src = '/assets/brand/packaging-canisters.jpg';
                     }}
                   />
 
                   {/* Clean flavor pill */}
-                  <div className="absolute top-3.5 left-3.5 z-10">
+                  <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none">
                     <span className="px-2.5 py-1 rounded-lg bg-[#140E0C]/80 backdrop-blur-md text-[11px] font-medium text-[#F6F2E8] border border-white/[0.1] shadow-sm">
                       {product.roast_level || 'Artisanal'}
                     </span>
@@ -358,7 +373,10 @@ export default function ShopCatalog({ onNavigate }) {
 
                   {/* Wishlist Button */}
                   <button
-                    onClick={() => handleToggleWishlist(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleWishlist(product);
+                    }}
                     className="absolute top-3.5 right-3.5 z-10 p-2 rounded-full bg-[#140E0C]/75 hover:bg-[#140E0C] text-[#F6F2E8] backdrop-blur-md transition-all active:scale-90 border border-white/[0.08]"
                     title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
                     aria-label="Wishlist"
@@ -367,7 +385,7 @@ export default function ShopCatalog({ onNavigate }) {
                   </button>
 
                   {/* Subtle caffeine & stock note */}
-                  <div className="absolute bottom-3 left-3.5 z-10 flex items-center gap-1.5">
+                  <div className="absolute bottom-3 left-3.5 z-10 flex items-center gap-1.5 pointer-events-none">
                     <span className="px-2 py-0.5 rounded-md bg-[#140E0C]/80 backdrop-blur-md text-[10px] font-medium text-[#D6A56E] border border-white/[0.08]">
                       50mg Pure Caffeine
                     </span>
@@ -384,7 +402,10 @@ export default function ShopCatalog({ onNavigate }) {
                   <div>
                     {/* Tasting notes */}
                     {product.flavor_notes && (
-                      <p className="text-[11px] font-medium text-[#D6A56E] uppercase tracking-wider mb-1 line-clamp-1">
+                      <p 
+                        onClick={() => dispatch(setSelectedProduct(product))}
+                        className="text-[11px] font-medium text-[#D6A56E] uppercase tracking-wider mb-1 line-clamp-1 cursor-pointer hover:underline"
+                      >
                         {product.flavor_notes}
                       </p>
                     )}
@@ -398,7 +419,10 @@ export default function ShopCatalog({ onNavigate }) {
                     </h3>
 
                     {/* Short Description */}
-                    <p className="text-xs text-[#A89B93] line-clamp-2 leading-relaxed mb-4">
+                    <p 
+                      onClick={() => dispatch(setSelectedProduct(product))}
+                      className="text-xs text-[#A89B93] line-clamp-2 leading-relaxed mb-4 cursor-pointer hover:text-[#C7BCB3] transition-colors"
+                    >
                       {product.tagline || product.description}
                     </p>
                   </div>
@@ -464,11 +488,11 @@ export default function ShopCatalog({ onNavigate }) {
                     <div className="pt-2 flex items-center justify-between text-[11px] text-[#A89B93]">
                       <span className="flex items-center gap-1 text-emerald-400">
                         <Truck className="w-3 h-3" />
-                        <span>Free delivery &gt; 2 items</span>
+                        <span>Free delivery on more than {freeThreshold} items</span>
                       </span>
                       <span className="flex items-center gap-1">
                         <ShieldCheck className="w-3 h-3 text-[#D6A56E]" />
-                        <span>7-Day Returns</span>
+                        <span>{returnDays}-Day Returns</span>
                       </span>
                     </div>
 
